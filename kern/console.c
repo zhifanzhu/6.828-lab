@@ -192,6 +192,8 @@ cga_putc(int c)
 	}
 
 	// What is the purpose of this?
+	// Answer: 输出结果已经占满CGA屏幕，memmove将显示内容上移一行，for 循环
+	// 		   清空最后一行内容， 最后将cursor上移一行。
 	if (crt_pos >= CRT_SIZE) {
 		int i;
 
