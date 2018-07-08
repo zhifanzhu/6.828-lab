@@ -24,6 +24,7 @@ struct Command {
 static struct Command commands[] = {
 	{ "help", "Display this list of commands", mon_help },
 	{ "kerninfo", "Display information about the kernel", mon_kerninfo },
+	{ "backtrace", "Display backtrace information", mon_backtrace},
 };
 
 /***** Implementations of basic kernel monitor commands *****/
@@ -57,7 +58,33 @@ mon_kerninfo(int argc, char **argv, struct Trapframe *tf)
 int
 mon_backtrace(int argc, char **argv, struct Trapframe *tf)
 {
-	// Your code here.
+	/*					|---------------|
+	 *					| 	   eip 	    |
+	 *					|---------------|
+	 *	  ebp(esp) -->	|    ebp_old    |
+	 * 					|---------------|
+	 */
+	int i;
+	uint32_t * ebp, eip;
+	struct Eipdebuginfo debug_info, *info;
+	info = &debug_info;
+	cprintf("Stack backtrace:\n");
+	__asm__ __volatile__("movl %%ebp, %0" : "=r"(ebp));
+
+	for( ;(uint32_t)ebp != 0; ebp = (uint32_t *)*ebp){
+		eip = (uint32_t)*(ebp +1);
+		cprintf("  ebp %08x  eip %08x  args", (uint32_t)ebp,eip);
+		for(i=0;i!=5;i++){
+			cprintf(" %08x",*(ebp + i + 2));
+		}
+		cprintf("\n");
+		/* Print out source file infomation*/
+		debuginfo_eip(eip, info);
+		cprintf("         %s:%d: %.*s+%d\n", info->eip_file, \
+			info->eip_line, info->eip_fn_namelen, \
+			info->eip_fn_name, eip - info->eip_fn_addr);
+	}
+
 	return 0;
 }
 
