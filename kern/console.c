@@ -185,8 +185,7 @@ static int background;
 static int fg_tmp;
 static int bg_tmp;
 static int esc_stage;// one of {0, '\e', '[', ';', '1', '3', '4', '9', '0',
-					 // 'c'(set color post process), 'n'(not a color)}
-
+					 // 'n'(not a color)}
 
 static void
 cga_putc_default(int c)
@@ -308,51 +307,42 @@ cga_putc(int c)
 		if (c <= '7') {
 			c -= '0';
 			bg_tmp = 0x8 | ((c & 0x1) << 2) | (c & 0x2) | ((c & 0x4) >> 2);
-			esc_stage = 'c';
 		}
-		else
-			esc_stage = 'n';
+		esc_stage = 'n';
 		return;
 	case '3':
 		if (c <= '7') {
 			c -= '0';
 			fg_tmp = ((c & 0x1) << 2) | (c & 0x2) | ((c & 0x4) >> 2);
-			esc_stage = 'c';
 		}
-		else
-			esc_stage = 'n';
+		esc_stage = 'n';
 		return;
 	case '4':
 		if (c <= '7') {
 			c -= '0';
 			bg_tmp = ((c & 0x1) << 2) | (c & 02) | ((c & 0x4) >> 2);
-			esc_stage = 'c';
 		}
-		else
-			esc_stage = 'n';
+		esc_stage = 'n';
 		return;
 	case '9':
 		if (c <= '7') {
 			c -= '0';
 			fg_tmp = 0x8 | ((c & 0x1) << 2) | (c & 0x2) | ((c & 0x4) >> 2);
-			esc_stage = 'c';
 		}
-		else
-			esc_stage = 'n';
+		esc_stage = 'n';
 		return;
 	// Valid color setting should not reach here,
 	// when foreground or background is set, if more numerical
 	// digit input occur, will clean tmp according to fg_flag,
 	// note input c here will not be ';','m' or \e'.
-	case 'c'://fall through
 	case '2':
 	case '5':
 	case '6':
 	case '7':
 	case '8':
 	case 'n':
-		bg_tmp = (background != bg_tmp) ? 0 : bg_tmp;
-		fg_tmp = (foreground != fg_tmp) ? 0 : fg_tmp;
+		bg_tmp = background;
+		fg_tmp = foreground;
 		return;
 	}
 }
