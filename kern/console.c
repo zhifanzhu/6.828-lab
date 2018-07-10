@@ -184,6 +184,7 @@ static int foreground;
 static int background;
 static int fg_tmp;
 static int bg_tmp;
+static int lonely_zero;// Flag that indicate whether '0' has '1' before it
 static int esc_stage;// one of {0, '\e', '[', ';', '1', '3', '4', '9', '0',
 					 // 'n'(not a color)}
 
@@ -278,7 +279,7 @@ cga_putc(int c)
 
 	if (c < '0' || c > '9') {
 		if (c == 'm') {
-			if (esc_stage == ';'){ 
+			if (esc_stage == ';'|| (esc_stage == '0' && lonely_zero)){ 
 				bg_tmp = background = 0;
 				fg_tmp = foreground = 0;
 			}
@@ -293,11 +294,14 @@ cga_putc(int c)
 	
 	// Possible stage now is {'[',';','1','3','4','9','0','c','n'}
 	// input c in range['0','9']
+	lonely_zero = 0;
 	switch (esc_stage) {
 	case '[':
+		lonely_zero = 1;
 		esc_stage = c;
 		return;
 	case ';':
+		lonely_zero = 1;
 		esc_stage = c;
 		return;
 	case '1':
