@@ -157,10 +157,39 @@ cga_init(void)
 	crt_pos = pos;
 }
 
+/******** lab 1 challenge *********
+*********	 ansi table  **********
+	   			fg	bg      
+Black			30	40		0x0
+Red				31	41		0x4
+Green			32	42		0x2
+Yellow			33	43		0x6
+Blue			34	44		0x1
+Magenta			35	45		0x5
+Cyan			36	46		0x3
+White			37	47		0x7
+Bright Black	90	100		0x8
+Bright Red		91	101		0xc
+Bright Green	92	102		0xa
+Bright Yellow	93	103		0xe
+Bright Blue		94	104		0x9
+Bright Magenta	95	105		0xd
+Bright Cyan		96	106		0xb
+Bright White	97	107		0xf
+
+***********************************/
+
+static int attribute;
+static int foreground;
+static int background;
+static int fg_tmp;
+static int bg_tmp;
+static int esc_stage;// one of {0, '\e', '[', ';', '1', '3', '4', '9', '0',
+					 // 'c'(set color post process), 'n'(not a color)}
 
 
 static void
-cga_putc(int c)
+cga_putc_default(int c)
 {
 	// if no attribute given, then use black on white
 	if (!(c & ~0xFF))
@@ -208,6 +237,124 @@ cga_putc(int c)
 	outb(addr_6845 + 1, crt_pos >> 8);
 	outb(addr_6845, 15);
 	outb(addr_6845 + 1, crt_pos);
+}
+
+static void
+cga_putc(int c)
+{
+	// Process any '\e' 
+	if (c == '\e') {
+		esc_stage = '\e';
+		return;
+	}
+
+	// Normal cputchar
+	if (!esc_stage) {
+		cga_putc_default(c|attribute);
+		return;
+	}
+
+	// If stage == '\e', expect '['
+	if (esc_stage == '\e') {
+		if (c =='[')
+			esc_stage = '[';
+		else
+			esc_stage = 0;
+		return;
+	}
+
+	// When c is ';', stage ';' i.e ";;", clean every thing
+	// When c is ';', stage else, save *_tmp
+	if (c == ';'){
+		if (esc_stage == ';'){
+			bg_tmp = fg_tmp = 0;
+			background = foreground = 0;
+		} else {	
+			foreground = (foreground != fg_tmp) ? fg_tmp : foreground;
+			background = (background != bg_tmp) ? bg_tmp : background;
+			esc_stage = ';';
+		}
+		return;
+	}
+
+	if (c < '0' || c > '9') {
+		if (c == 'm') {
+			if (esc_stage == ';'){ 
+				bg_tmp = background = 0;
+				fg_tmp = foreground = 0;
+			}
+			foreground = (foreground != fg_tmp) ? fg_tmp : foreground;
+			background = (background != bg_tmp) ? bg_tmp : background;
+			attribute = (background << 12) | (foreground << 8);
+		}
+		// Set stage to normal mode
+		esc_stage = 0;
+		return;
+	}
+	
+	// Possible stage now is {'[',';','1','3','4','9','0','c','n'}
+	// input c in range['0','9']
+	switch (esc_stage) {
+	case '[':
+		esc_stage = c;
+		return;
+	case ';':
+		esc_stage = c;
+		return;
+	case '1':
+		esc_stage = (c == '0') ? c : 'n';
+		return;
+	case '0':
+		if (c <= '7') {
+			c -= '0';
+			bg_tmp = 0x8 | ((c & 0x1) << 2) | (c & 0x2) | ((c & 0x4) >> 2);
+			esc_stage = 'c';
+		}
+		else
+			esc_stage = 'n';
+		return;
+	case '3':
+		if (c <= '7') {
+			c -= '0';
+			fg_tmp = ((c & 0x1) << 2) | (c & 0x2) | ((c & 0x4) >> 2);
+			esc_stage = 'c';
+		}
+		else
+			esc_stage = 'n';
+		return;
+	case '4':
+		if (c <= '7') {
+			c -= '0';
+			bg_tmp = ((c & 0x1) << 2) | (c & 02) | ((c & 0x4) >> 2);
+			esc_stage = 'c';
+		}
+		else
+			esc_stage = 'n';
+		return;
+	case '9':
+		if (c <= '7') {
+			c -= '0';
+			fg_tmp = 0x8 | ((c & 0x1) << 2) | (c & 0x2) | ((c & 0x4) >> 2);
+			esc_stage = 'c';
+		}
+		else
+			esc_stage = 'n';
+		return;
+	// Valid color setting should not reach here,
+	// when foreground or background is set, if more numerical
+	// digit input occur, will clean tmp according to fg_flag,
+	// note input c here will not be ';','m' or \e'.
+	case 'c'://fall through
+	case '2':
+	case '5':
+	case '6':
+	case '7':
+	case '8':
+	case 'n':
+		bg_tmp = (background != bg_tmp) ? 0 : bg_tmp;
+		fg_tmp = (foreground != fg_tmp) ? 0 : fg_tmp;
+		return;
+	}
 }
 
 
