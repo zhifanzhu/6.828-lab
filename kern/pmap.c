@@ -102,8 +102,17 @@ boot_alloc(uint32_t n)
 	// to a multiple of PGSIZE.
 	//
 	// LAB 2: Your code here.
+	result = nextfree;
+	if (n) {
+		uint32_t alloc_size;
+		alloc_size = ROUNDUP(n, PGSIZE);
+		if (PGNUM((physaddr_t)nextfree + alloc_size >= npages))
+			panic("boot alloc out of memory! nextfree = 0x%x, alloc size = 0x%x, greater than 0x%x\n", 
+				(uint32_t)nextfree, alloc_size, (uint32_t)KADDR(npages * PGSIZE));
+		nextfree += alloc_size;
+	}
 
-	return NULL;
+	return (void*)result;
 }
 
 // Set up a two-level page table:
@@ -125,7 +134,7 @@ mem_init(void)
 	i386_detect_memory();
 
 	// Remove this line when you're ready to test this function.
-	panic("mem_init: This function is not finished\n");
+	// panic("mem_init: This function is not finished\n");
 
 	//////////////////////////////////////////////////////////////////////
 	// create initial page directory.
@@ -148,7 +157,8 @@ mem_init(void)
 	// array.  'npages' is the number of physical pages in memory.  Use memset
 	// to initialize all fields of each struct PageInfo to 0.
 	// Your code goes here:
-
+	pages = (struct PageInfo *)boot_alloc(npages * sizeof(struct PageInfo));
+	memset(pages, 0, npages * sizeof(struct PageInfo));
 
 	//////////////////////////////////////////////////////////////////////
 	// Now that we've allocated the initial kernel data structures, we set
@@ -252,10 +262,20 @@ page_init(void)
 	// NB: DO NOT actually touch the physical memory corresponding to
 	// free pages!
 	size_t i;
-	for (i = 0; i < npages; i++) {
+	// Alloc base mem
+	for (i = 1; i < npages_basemem; i++) {
 		pages[i].pp_ref = 0;
 		pages[i].pp_link = page_free_list;
 		page_free_list = &pages[i];
+	}
+	
+	// Alloc extend mem
+	size_t nextfree;
+	nextfree = (size_t)PADDR((char *)boot_alloc(0));
+	for (i = nextfree / PGSIZE; i < npages; i++) {
+		pages[i].pp_ref = 0;
+		pages[i].pp_link = page_free_list;
+		page_free_list = &pages[i];	
 	}
 }
 
@@ -275,7 +295,16 @@ struct PageInfo *
 page_alloc(int alloc_flags)
 {
 	// Fill this function in
-	return 0;
+	if (!page_free_list)
+		return NULL;
+	struct PageInfo *ret_page;
+	ret_page = page_free_list;
+	page_free_list = page_free_list->pp_link; // point free list to next free page
+	ret_page->pp_link = NULL; // Don't increment pp_ref here
+	if (alloc_flags & ALLOC_ZERO) {
+		memset((char *)page2kva(ret_page), '\0', PGSIZE);
+	}
+	return ret_page;
 }
 
 //
@@ -288,6 +317,12 @@ page_free(struct PageInfo *pp)
 	// Fill this function in
 	// Hint: You may want to panic if pp->pp_ref is nonzero or
 	// pp->pp_link is not NULL.
+	if (pp->pp_ref)
+		panic("pp_ref nonzero!\n");
+	if (pp->pp_link)
+		panic("pp_link not NULL!\n");
+	pp->pp_link = page_free_list;
+	page_free_list = pp;
 }
 
 //
@@ -508,7 +543,7 @@ check_page_alloc(void)
 	struct PageInfo *fl;
 	char *c;
 	int i;
-
+	
 	if (!pages)
 		panic("'pages' is a null pointer!");
 

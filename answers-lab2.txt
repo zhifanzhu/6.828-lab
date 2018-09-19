@@ -1,0 +1,7 @@
+Exercise 1:
+    note: &page[1] - &page[0] == 1, because it's pointer arithmetic
+        while (int)&page[1] - (int)&page[0] == 8
+    KADDR & PADDR & page2kva
+Exercise 2:
+    Reading
+
