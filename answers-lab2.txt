@@ -4,4 +4,7 @@ Exercise 1:
     KADDR & PADDR & page2kva
 Exercise 2:
     Reading
-
+Exercise 3:
+    Finish
+Question Answer:
+    x type is : uintptr_t
