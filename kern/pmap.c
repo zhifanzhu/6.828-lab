@@ -447,10 +447,8 @@ page_insert(pde_t *pgdir, struct PageInfo *pp, void *va, int perm)
 		return -E_NO_MEM;
 	}
 
-    if (page_lookup(pgdir, va, NULL) != pp) {
-	    page_remove(pgdir, va); // page_remove do nothing when va not mapped
-	    pp->pp_ref ++;
-    }
+    pp->pp_ref ++;
+	page_remove(pgdir, va); // page_remove do nothing when va not mapped
 	*pt_entry = pa | perm | PTE_P;
 
 	return 0;

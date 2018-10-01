@@ -2,9 +2,43 @@ Exercise 1:
     note: &page[1] - &page[0] == 1, because it's pointer arithmetic
         while (int)&page[1] - (int)&page[0] == 8
     KADDR & PADDR & page2kva
+
 Exercise 2:
     Reading
+
 Exercise 3:
     Finish
 Question Answer:
     x type is : uintptr_t
+
+Exercise 4,5:
+    Coding, finish
+Questions 2:
+    Entry       |   Base Virtual Addr   |   Points to (logically)
+    1023            0xFFC00000              Page table for top 4MB of phys memory
+    1022            0xFF800000              pt for top 8~4MB of phys mem
+    ...
+    960(0x3C0)      0xF0000000              pa 0
+    959(0x3BF)      0xEFC00000              Kernel stack;'bootstack'
+    958             ???                     ???
+    957(0x3BD)      0xEF400000              UVPT
+    956(0x3BC)      0xEF000000              pages
+    ...
+    2               0x00800000              ?
+    1               0x00400000              ?
+    0               0x00000000              ?
+
+Question 3:
+   PTE_U not set; page fault occur when CPL==3 tries to access ~PTE_U
+
+Question 4:
+    3819Mb = 0xEEBFE000(USTACKTOP) / 1Mb
+
+Question 5:
+   4K (kern_pgdir) + 3819M / 4K (npages) * 8 (struct PageInfo)
+   = 4K + 7638K
+   = 7642K
+
+Question 6:
+   At jumping to $relocated, which is linked at high addr, EIP runs above KERNBASE;
+   Since we set a intermediate entry_pgdir, which map both [0,4Mb) and [KERNBASE, KERNBASE + 4Mb) to [0,4Mb). We need it to coordinate between entry virtual addr and final kernal virtual addr, which should be the same.
