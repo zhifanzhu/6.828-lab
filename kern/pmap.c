@@ -107,8 +107,11 @@ boot_alloc(uint32_t n)
 		uint32_t alloc_size;
 		alloc_size = ROUNDUP(n, PGSIZE);
 		if (PGNUM((physaddr_t)nextfree + alloc_size >= npages))
-			panic("boot alloc out of memory! nextfree = 0x%x, alloc size = 0x%x, greater than 0x%x\n", 
-				(uint32_t)nextfree, alloc_size, (uint32_t)KADDR(npages * PGSIZE));
+			panic("boot alloc out of memory! nextfree = 0x%x, \
+				alloc size = 0x%x, greater than 0x%x\n", 
+				(uint32_t)nextfree, alloc_size, 
+				(uint32_t)KADDR(npages * PGSIZE)
+				);
 		nextfree += alloc_size;
 	}
 
@@ -182,7 +185,8 @@ mem_init(void)
 	//      (ie. perm = PTE_U | PTE_P)
 	//    - pages itself -- kernel RW, user NONE
 	// Your code goes here:
-    boot_map_region(kern_pgdir, UPAGES, npages * sizeof(struct PageInfo), PADDR(pages), PTE_U | PTE_P);
+    boot_map_region(kern_pgdir, UPAGES, npages * sizeof(struct PageInfo), 
+    	PADDR(pages), PTE_U | PTE_P);
 
 	//////////////////////////////////////////////////////////////////////
 	// Use the physical memory that 'bootstack' refers to as the kernel
@@ -195,7 +199,8 @@ mem_init(void)
 	//       overwrite memory.  Known as a "guard page".
 	//     Permissions: kernel RW, user NONE
 	// Your code goes here:
-    boot_map_region(kern_pgdir, KSTACKTOP - KSTKSIZE, KSTKSIZE, PADDR(bootstack), PTE_W | PTE_P);
+    boot_map_region(kern_pgdir, KSTACKTOP - KSTKSIZE, KSTKSIZE, 
+    	PADDR(bootstack), PTE_W | PTE_P);
 
 	//////////////////////////////////////////////////////////////////////
 	// Map all of physical memory at KERNBASE.
@@ -205,7 +210,8 @@ mem_init(void)
 	// we just set up the mapping anyway.
 	// Permissions: kernel RW, user NONE
 	// Your code goes here:
-    boot_map_region(kern_pgdir, KERNBASE, 0xFFFFFFFF - KERNBASE, 0, PTE_W | PTE_P);
+    boot_map_region(kern_pgdir, KERNBASE, 0xFFFFFFFF - KERNBASE, 
+    	0, PTE_W | PTE_P);
 
 	// Check that the initial page directory has been set up correctly.
 	check_kern_pgdir();
