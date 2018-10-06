@@ -42,3 +42,6 @@ Question 5:
 Question 6:
    At jumping to $relocated, which is linked at high addr, EIP runs above KERNBASE;
    Since we set a intermediate entry_pgdir, which map both [0,4Mb) and [KERNBASE, KERNBASE + 4Mb) to [0,4Mb). We need it to coordinate between entry virtual addr and final kernal virtual addr, which should be the same.
+
+Challenge: Extend jos kernel command
+    add showmappings.c
