@@ -44,4 +44,10 @@ Question 6:
    Since we set a intermediate entry_pgdir, which map both [0,4Mb) and [KERNBASE, KERNBASE + 4Mb) to [0,4Mb). We need it to coordinate between entry virtual addr and final kernal virtual addr, which should be the same.
 
 Challenge: Extend jos kernel command
-    add showmappings.c
+    add showmappings.c, modify Makefarg under kern/
+    support viewing single/range virtual address(es)  pg 0x3000 / pg 0x3000 0x5000
+    support dumping     pg -dv 0xf0003000 / pg -dp 0x3000
+        note : dumping end when next page after page boundary not mapped
+    support setting perm    pg -s 0xf0000000 (--clear/--add) U W P
+        note: at least PTE_P will be left after setting
+        in perm bits, treat pte AVL bits(for system use) as single bit
