@@ -1,2 +1,7 @@
 Exercise 1:
     similar to pages, using boot_alloc
+
+Exercise 2:
+    我的难处：load_icode() 居然还要用lcr3？ 有没有更巧妙的办法？PageInfo？
+    我没想出来的：
+        env_setup_vm 里面， 居然直接memcpy kern_pgdir就可以了，本来我还想一行一行复制。
