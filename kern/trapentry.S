@@ -78,6 +78,8 @@ TRAPHANDLER_NOEC(vector29, 29)
 TRAPHANDLER_NOEC(vector30, 30)
 TRAPHANDLER_NOEC(vector31, 31)
 
+TRAPHANDLER_NOEC(vector48, T_SYSCALL)
+
 /*
  * Lab 3: Your code here for _alltraps
  */
@@ -136,3 +138,20 @@ vectors:
 	.long 	vector29
 	.long 	vector30
 	.long 	vector31
+	.long 	0
+	.long 	0
+	.long 	0
+	.long 	0
+	.long 	0
+	.long 	0
+	.long 	0
+	.long 	0
+	.long 	0
+	.long 	0
+	.long 	0
+	.long 	0
+	.long 	0
+	.long 	0
+	.long 	0
+	.long 	0
+	.long 	vector48
