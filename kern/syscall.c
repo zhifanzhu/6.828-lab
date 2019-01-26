@@ -21,15 +21,7 @@ sys_cputs(const char *s, size_t len)
 	// Destroy the environment if not.
 
 	// LAB 3: Your code here.
-    uintptr_t last = ROUNDUP((uintptr_t)s + len, PGSIZE);
-    uintptr_t va = ROUNDDOWN((uintptr_t)s, PGSIZE);
-    for (; va != last; va += PGSIZE) {
-        pte_t *pt_entry = pgdir_walk(curenv->env_pgdir, (const void *)va, false);
-        if ( (*pt_entry & (PTE_U | PTE_P)) == 0) {
-            env_destroy(curenv);
-            return;
-        }
-    }
+    user_mem_assert(curenv, s, len, PTE_U | PTE_P);
 
 	// Print the string supplied by the user.
 	cprintf("%.*s", len, s);

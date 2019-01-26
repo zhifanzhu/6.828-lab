@@ -34,4 +34,7 @@ Exercise 7:
     make sure env.c: load_icode set *region_alloc and memset* address correctly
         especially ph->p_memsz / ph->p_filesz are easily confused.
 
+Challenge:
+    Not yet, TODO
 Exercise 8: Easy
+Exercise 9: Easy
