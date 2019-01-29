@@ -158,9 +158,7 @@ trap_dispatch(struct Trapframe *tf)
 
     case T_BRKPT:
         print_trapframe(tf);
-        while(1) {
-            monitor(NULL);
-        }
+        monitor(NULL);
 
     case T_PGFLT:
         page_fault_handler(tf);
@@ -240,15 +238,8 @@ page_fault_handler(struct Trapframe *tf)
 	// Handle kernel-mode page faults.
 
 	// LAB 3: Your code here.
-    if (tf->tf_cs == GD_KT) {
-        struct PageInfo *page;
-        if (!(page = page_alloc(ALLOC_ZERO)))
-            panic("page_fault_handler: page_alloc out of memory");
-        int r = page_insert(kern_pgdir, page, (void *)fault_va, PTE_P);
-        if (r != 0)
-            panic("page_fault_handler: %e", r);
-        return;
-    }
+    if (tf->tf_cs == GD_KT) 
+        panic("Kernel page fault at 0x%x!", fault_va);
 
 	// We've already handled kernel-mode exceptions, so if we get here,
 	// the page fault happened in user mode.
