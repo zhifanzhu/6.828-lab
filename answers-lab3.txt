@@ -38,3 +38,5 @@ Challenge:
     Not yet, TODO
 Exercise 8: Easy
 Exercise 9: Easy
+订正Exercise 9：
+    并不Easy！ 都没有认真审题！ 说了kernel 的page fault只能panic了
