@@ -1,0 +1,3 @@
+Exercise 1 & 2:
+    Questions answer:
+        1. Since the mpentry.S code and loaded not linked, their address will start from zero, if not using MPBOOTPHYS.

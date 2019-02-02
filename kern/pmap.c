@@ -304,6 +304,10 @@ page_init(void)
 	// LAB 4:
 	// Change your code to mark the physical page at MPENTRY_PADDR
 	// as in use
+	extern unsigned char mpentry_start[], mpentry_end[];
+	physaddr_t mp_start = MPENTRY_PADDR;
+	physaddr_t code_size = ROUNDUP(
+	        (physaddr_t)(mpentry_end - mpentry_start), PGSIZE);
 
 	// The example code here marks all physical pages as free.
 	// However this is not truly the case.  What memory is free?
@@ -325,6 +329,9 @@ page_init(void)
 	size_t i;
 	// Alloc base mem
 	for (i = 1; i < npages_basemem; i++) {
+	    if (page2pa(&pages[i]) >= mp_start &&
+	        page2pa(&pages[i]) <= (mp_start + code_size) )
+	        continue;
 		pages[i].pp_ref = 0;
 		pages[i].pp_link = page_free_list;
 		page_free_list = &pages[i];
@@ -610,7 +617,14 @@ mmio_map_region(physaddr_t pa, size_t size)
 	// Hint: The staff solution uses boot_map_region.
 	//
 	// Your code here:
-	panic("mmio_map_region not implemented");
+	size = ROUNDUP(size, PGSIZE);
+	uintptr_t ret = base;
+	if (base >= MMIOLIM || base + size >= MMIOLIM)
+	    panic("mmio_map_region: base overflow MMIOLIM");
+	boot_map_region(kern_pgdir, base, size, pa, 
+	        PTE_PCD | PTE_PWT | PTE_W | PTE_P);
+	base += size;
+	return (void *)ret;
 }
 
 static uintptr_t user_mem_check_addr;
