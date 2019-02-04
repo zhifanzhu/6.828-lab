@@ -5,3 +5,8 @@ Exercise 1 & 2:
 Ex 3, 4, 5:
     Question
         2. One cpu modify kernel of another cpu, e.g. another cpu's Env.
+
+Ex 6:
+    Question
+        3. Because e is allocated in envs, which is static mapped to same virtual address in every page directory.
+        4. Each env's associated registers are Context of that env. Saving is done by _alltraps.

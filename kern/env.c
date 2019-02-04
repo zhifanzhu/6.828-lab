@@ -536,8 +536,11 @@ env_run(struct Env *e)
 	//	e->env_tf to sensible values.
 
 	// LAB 3: Your code here.
-    if (curenv)
+    if (curenv) {
+		if (curenv->env_status != ENV_RUNNING)
+			panic("env_run: call env_run when curenv not ENV_RUNNING");
         curenv->env_status = ENV_RUNNABLE;
+	}
     curenv = e;
     curenv->env_status = ENV_RUNNING;
     curenv->env_runs++;
