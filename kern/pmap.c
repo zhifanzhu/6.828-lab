@@ -546,7 +546,7 @@ page_lookup(pde_t *pgdir, void *va, pte_t **pte_store)
 	if (!p_entry)
 		return NULL;
 	if (pte_store) {
-		p_entry = *pte_store;
+		*pte_store = p_entry;
 	}
 	return pa2page(PTE_ADDR((physaddr_t)*p_entry));
 }
@@ -570,11 +570,11 @@ void
 page_remove(pde_t *pgdir, void *va)
 {
 	// Fill this function in
-	struct PageInfo *p_page = page_lookup(pgdir, va, NULL);
+	pte_t *p_entry;
+	struct PageInfo *p_page = page_lookup(pgdir, va, &p_entry);
 	if (!p_page)
 		return;
 	page_decref(p_page); // page_decref will autodo page_free 
-	pte_t *p_entry = pgdir_walk(pgdir, va, false);
 	if (*p_entry & PTE_P) {
 		*p_entry = 0;
 		tlb_invalidate(pgdir, va);
