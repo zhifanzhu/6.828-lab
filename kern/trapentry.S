@@ -97,11 +97,7 @@ _alltraps:
 
 	pushl %esp
 	call trap
-	addl $4, %esp
-
-	popal
-	popl %es
-	popl %ds
+	# _alltraps returns by env_pop_tf, not here
 
 
 .data
