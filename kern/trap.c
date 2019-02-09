@@ -350,11 +350,54 @@ page_fault_handler(struct Trapframe *tf)
 	//   (the 'tf' variable points at 'curenv->env_tf').
 
 	// LAB 4: Your code here.
+	if (!curenv->env_pgfault_upcall)
+		goto bad;
 
+	tf->tf_esp -= 4;
+	uintptr_t tt_esp; // Trap-time esp
+	if (tf->tf_esp <= USTACKTOP && tf->tf_esp >= USTACKTOP - PGSIZE) {
+		tt_esp = UXSTACKTOP;
+//		struct PageInfo *pp = page_alloc(ALLOC_ZERO);
+//		int r;
+//		if ((r = page_insert(curenv->env_pgdir, pp, 
+//				(void *)(UXSTACKTOP - PGSIZE), PTE_W | PTE_U | PTE_P)) < 0)
+//			panic("page_fault_handler: %e", r);
+	}
+	else if (tf->tf_esp >= UXSTACKTOP - PGSIZE 
+		&& tf->tf_esp < UXSTACKTOP) {
+		tt_esp = tf->tf_esp;
+	}
+	else {
+		// Overflows, Destroy the environment that caused the fault.
+		goto bad;
+	}
+
+	tt_esp -= sizeof(struct UTrapframe);
+	struct UTrapframe utf;
+	utf.utf_fault_va = fault_va;
+	utf.utf_err = tf->tf_err;
+	utf.utf_regs = tf->tf_regs;
+	utf.utf_eip = tf->tf_eip;
+	utf.utf_eflags = tf->tf_eflags;
+	utf.utf_esp = tf->tf_esp;
+	*(struct UTrapframe *)tt_esp = utf;
+
+	tf->tf_eip = (uintptr_t)curenv->env_pgfault_upcall;
+	tf->tf_esp = tt_esp;
+
+	user_mem_assert(curenv, (void *)(UXSTACKTOP - PGSIZE), 
+			PGSIZE, PTE_W); 
+	user_mem_assert(curenv, (void *)tf->tf_esp, 
+			sizeof(struct UTrapframe), PTE_W); 
+	env_run(curenv);
+	return;
+
+bad:
 	// Destroy the environment that caused the fault.
 	cprintf("[%08x] user fault va %08x ip %08x\n",
 		curenv->env_id, fault_va, tf->tf_eip);
 	print_trapframe(tf);
 	env_destroy(curenv);
+	return;
 }
 
