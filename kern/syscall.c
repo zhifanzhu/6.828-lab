@@ -138,6 +138,7 @@ sys_env_set_pgfault_upcall(envid_t envid, void *func)
 	struct Env *e;
 	if ((r = envid2env(envid, &e, 1)) < 0)
 		return r;
+	user_mem_assert(e, func, PGSIZE, PTE_U|PTE_P);
 	e->env_pgfault_upcall = func;
 	return 0;
 }
@@ -181,9 +182,7 @@ sys_page_alloc(envid_t envid, void *va, int perm)
 	if ((pp = page_alloc(ALLOC_ZERO)) == NULL)
 		return -E_NO_MEM;
 	
-	//	TODO page_insert can take over when already mapped?
-//	if ((p = page_lookup(e->env_pgdir, va, NULL)) != 0)
-//		sys_page_unmap(envid, va);
+	// No need for unmap, page_insert can take over when already mapped
 	if ((r = page_insert(e->env_pgdir, pp, va, perm)) < 0) {
 		page_free(pp);
 		return r;

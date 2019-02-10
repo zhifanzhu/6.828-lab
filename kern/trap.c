@@ -352,16 +352,11 @@ page_fault_handler(struct Trapframe *tf)
 	// LAB 4: Your code here.
 	if (!curenv->env_pgfault_upcall)
 		goto bad;
-
 	tf->tf_esp -= 4;
+
 	uintptr_t tt_esp; // Trap-time esp
 	if (tf->tf_esp <= USTACKTOP && tf->tf_esp >= USTACKTOP - PGSIZE) {
 		tt_esp = UXSTACKTOP;
-//		struct PageInfo *pp = page_alloc(ALLOC_ZERO);
-//		int r;
-//		if ((r = page_insert(curenv->env_pgdir, pp, 
-//				(void *)(UXSTACKTOP - PGSIZE), PTE_W | PTE_U | PTE_P)) < 0)
-//			panic("page_fault_handler: %e", r);
 	}
 	else if (tf->tf_esp >= UXSTACKTOP - PGSIZE 
 		&& tf->tf_esp < UXSTACKTOP) {
@@ -373,6 +368,8 @@ page_fault_handler(struct Trapframe *tf)
 	}
 
 	tt_esp -= sizeof(struct UTrapframe);
+	user_mem_assert(curenv, (void *)tt_esp, 
+			sizeof(struct UTrapframe), PTE_W|PTE_U|PTE_P); 
 	struct UTrapframe utf;
 	utf.utf_fault_va = fault_va;
 	utf.utf_err = tf->tf_err;
@@ -386,9 +383,7 @@ page_fault_handler(struct Trapframe *tf)
 	tf->tf_esp = tt_esp;
 
 	user_mem_assert(curenv, (void *)(UXSTACKTOP - PGSIZE), 
-			PGSIZE, PTE_W); 
-	user_mem_assert(curenv, (void *)tf->tf_esp, 
-			sizeof(struct UTrapframe), PTE_W); 
+			PGSIZE, PTE_W|PTE_U|PTE_P); 
 	env_run(curenv);
 	return;
 
