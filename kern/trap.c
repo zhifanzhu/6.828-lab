@@ -352,7 +352,6 @@ page_fault_handler(struct Trapframe *tf)
 	// LAB 4: Your code here.
 	if (!curenv->env_pgfault_upcall)
 		goto bad;
-	tf->tf_esp -= 4;
 
 	uintptr_t tt_esp; // Trap-time esp
 	if (tf->tf_esp <= USTACKTOP && tf->tf_esp >= USTACKTOP - PGSIZE) {
@@ -360,7 +359,7 @@ page_fault_handler(struct Trapframe *tf)
 	}
 	else if (tf->tf_esp >= UXSTACKTOP - PGSIZE 
 		&& tf->tf_esp < UXSTACKTOP) {
-		tt_esp = tf->tf_esp;
+		tt_esp = tf->tf_esp - 4; // One blank word for pfentry.S
 	}
 	else {
 		// Overflows, Destroy the environment that caused the fault.

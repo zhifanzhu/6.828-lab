@@ -67,10 +67,11 @@ _pgfault_upcall:
 	// LAB 4: Your code here.
 	movl %esp, %eax
 	addl $40, %eax
-	movl (%eax), %ebx
+	movl (%eax), %ebx # Save trap-time eip in %ebx
 	addl $8, %eax
-	movl (%eax), %eax
-	movl %ebx, (%eax)
+	subl $4, (%eax)   # Modify trap-time esp to point to blank word
+	movl (%eax), %eax # Save trap-time esp in %eax
+	movl %ebx, (%eax) # Push trap-time eip
 
 	// Restore the trap-time registers.  After you do this, you
 	// can no longer modify any general-purpose registers.

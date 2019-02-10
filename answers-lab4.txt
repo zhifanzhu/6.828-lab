@@ -15,6 +15,6 @@ Ex 7:   Done
 
 Part B:
 Ex 8, 9, 10, 11:
-    In ex10 , first decrement tf->tf_esp by 4, then change it to point to EXCEPTION stack.
-    in pfentry.S, UTrapframe's fault_va and error_code is skipped (addl $8 %esp). Magic Number $40, $8 is calculated by watch the size of PushRegs and other parameters in UTrapframe(sizeof(UTrameframe) = 52, sizeof(PushRegs) = 8*4 = 32)
+    In ex10 , ONLY decrement tf->tf_esp by 4 when already in EXCEPTION.
+    in pfentry.S, UTrapframe's fault_va and error_code is skipped (addl $8 %esp). Magic Number $40, $8 is calculated by watch the size of PushRegs and other parameters in UTrapframe(sizeof(UTrameframe) = 52, sizeof(PushRegs) = 8*4 = 32), push trap-time eip by modifying trap-time esp using assembly language.
 
