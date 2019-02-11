@@ -25,13 +25,11 @@ pgfault(struct UTrapframe *utf)
 	//   (see <inc/memlayout.h>).
 
 	// LAB 4: Your code here.
-	pte_t *pt = (pte_t *)uvpd[PDX(addr)];
-	if (!pt)
-		panic("pgfault: page table not availible");
-	pte_t *pt_entry = (pte_t *)pt[PTX(addr)];
-	if (!(err == FEC_WR))
+	if (!(uvpd[PDX(addr)] & PTE_P && uvpt[PGNUM(addr)] & PTE_P))
+		panic("pgfault: page directory or pgae table not availible");
+	if (!(err & FEC_WR))
 		panic("pgfault: faulting access was not a write");
-	if (!pt_entry || !(*pt_entry & PTE_COW))
+	if (!(uvpt[PGNUM(addr)] & PTE_COW))
 		panic("pgfault: faulting access was not to a copy-on-write page");
 
 	// Allocate a new page, map it at a temporary location (PFTEMP),
@@ -41,6 +39,8 @@ pgfault(struct UTrapframe *utf)
 	//   You should make three system calls.
 
 	// LAB 4: Your code here.
+
+	addr = ROUNDDOWN(addr, PGSIZE); // Page-aligned is IMPORTANT!!!
 	if ((r = sys_page_alloc(0, PFTEMP, 
 				PTE_W|PTE_U|PTE_P)) < 0)
 		panic("pgfault: %e at sys_page_alloc", r);
@@ -69,25 +69,22 @@ duppage(envid_t envid, unsigned pn)
 
 	// LAB 4: Your code here.	
 	void *addr = (void *)(pn * PGSIZE);
-	pte_t *pt = (pte_t *)uvpd[PDX(addr)];
-	if (!pt)
-		panic("pgfault: page table not availible");
-	pte_t *pt_entry = (pte_t *)pt[PTX(addr)];
-	if (!pt_entry)
-		panic("pgfault: faulting access was not to a copy-on-write page");
-	if (*pt_entry & (PTE_P|PTE_U)) {
-		// Read-only
-		if (!(*pt_entry & PTE_W) && !(*pt_entry & PTE_COW))
-			sys_page_map(0, addr, envid, addr, PTE_U|PTE_P);
-
-		if (*pt_entry & PTE_W && *pt_entry & PTE_COW)
-				panic("duppage: %x both copy-on-write and writable");
-
-		// TODO
-		sys_page_unmap(0, addr);
-		sys_page_alloc(envid, addr, PTE_COW|PTE_U|PTE_P);
-		sys_page_map(envid, addr, 0, addr, PTE_COW|PTE_U|PTE_P);
+	// Read-only
+	if (!(uvpt[pn] & PTE_W) && !(uvpt[pn] & PTE_COW)) {
+		if ((r = sys_page_map(0, addr, envid, addr, PTE_U|PTE_P)) < 0)
+			panic("duppage: %e when sys_page_map", r);
+		return 0;
 	}
+
+	if (uvpt[pn] & PTE_W && uvpt[pn] & PTE_COW)
+			panic("duppage: %x both copy-on-write and writable");
+
+	if ((r = sys_page_map(0, addr, envid, addr, 
+					PTE_COW|PTE_U|PTE_P)) < 0)
+		panic("duppage: %e when sys_page_map", r);
+	if ((r = sys_page_map(0, addr, 0, addr, 
+					PTE_COW|PTE_U|PTE_P)) < 0)
+		panic("duppage: %e when sys_page_map", r);
 	return 0;
 }
 
@@ -121,22 +118,22 @@ fork(void)
 		panic("fork: %e at sys_exofork", envid);
 	if (envid == 0) {
 		thisenv = &envs[ENVX(sys_getenvid())];
-		set_pgfault_handler(pgfault);
 		return 0;
 	}
 	// Copy address space 
-//	int i, j;
-//	duppage(envid, (unsigned)uvpt / PGSIZE);
-//	for (i = 0; i != NPDENTRIES; ++i) {
-//		duppage(envid, uvpd[i] / PGSIZE);
-//		for (j = 0; j != NPTENTRIES; ++j) {
-//			pte_t *pt = (pte_t *)uvpd[i];
-//			duppage(envid, pt[j] / PGSIZE);
-//		}
-//	}
 	uintptr_t addr;
-	for (addr = 0; addr < USTACKTOP; addr += PGSIZE)
-		duppage(envid, addr / PGSIZE);
+	for (addr = 0; addr < USTACKTOP; addr += PGSIZE) {
+		if (!(uvpd[PDX(addr)] & PTE_P))
+			continue;
+		if (uvpt[PGNUM(addr)] & PTE_P && uvpt[PGNUM(addr)] & PTE_U)
+			duppage(envid, PGNUM(addr));
+	}
+	// Set pgfault handler for child
+	if ((r = sys_page_alloc(envid, (void *)(UXSTACKTOP - PGSIZE), 
+				PTE_W | PTE_U | PTE_P)) < 0)
+		panic("set_pgfault_handler: %e", r);
+	extern void _pgfault_upcall(void);
+	sys_env_set_pgfault_upcall(envid, _pgfault_upcall);
 	// Set child status
 	if ((r = sys_env_set_status(envid, ENV_RUNNABLE)) < 0)
 		panic("fork: %e at sys_env_set_status", envid);

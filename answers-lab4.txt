@@ -18,3 +18,8 @@ Ex 8, 9, 10, 11:
     In ex10 , ONLY decrement tf->tf_esp by 4 when already in EXCEPTION.
     in pfentry.S, UTrapframe's fault_va and error_code is skipped (addl $8 %esp). Magic Number $40, $8 is calculated by watch the size of PushRegs and other parameters in UTrapframe(sizeof(UTrameframe) = 52, sizeof(PushRegs) = 8*4 = 32), push trap-time eip by modifying trap-time esp using assembly language.
 
+Ex 12:
+    UVPT 真的很聪明！！！
+    巧妙之处在于把PDX指向到了自身，把PTX指向了原PDX，而offset呢，刚好又和uvpt[pn]的pn*4 的后12位对应上了，而且刚好32bit宽，我佛了！。。。。
+    访问pt的permission位(即va), 只需uvpt[pn];访问pd的permission位，只需upvd[pn].
+    va 的 page-aligned 真的很关键！(在pgfault)
