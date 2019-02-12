@@ -27,3 +27,5 @@ Ex 12:
 Part C:
 Ex13:
     Note: run with CPUS more than 1, otherwise it will no pass read_eflags() assert in trap()
+    修改 trap_init (lab3), 由于JOS diable interrupt in kernel mode，SETGATE for T_SYSCALL 应该是 0，interrupt gate 而不是trap gate.
+    记得要 eoi lapic 的中断
