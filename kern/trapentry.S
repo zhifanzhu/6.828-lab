@@ -79,6 +79,23 @@ TRAPHANDLER_NOEC(vector29, 29)
 TRAPHANDLER_NOEC(vector30, 30)
 TRAPHANDLER_NOEC(vector31, 31)
 
+TRAPHANDLER_NOEC(vector32, IRQ_OFFSET + IRQ_TIMER)
+TRAPHANDLER_NOEC(vector33, IRQ_OFFSET + IRQ_KBD)
+TRAPHANDLER_NOEC(vector34, IRQ_OFFSET+2)
+TRAPHANDLER_NOEC(vector35, IRQ_OFFSET+3)
+TRAPHANDLER_NOEC(vector36, IRQ_OFFSET + IRQ_SERIAL)
+TRAPHANDLER_NOEC(vector37, IRQ_OFFSET+5)
+TRAPHANDLER_NOEC(vector38, IRQ_OFFSET+6)
+TRAPHANDLER_NOEC(vector39, IRQ_OFFSET + IRQ_SPURIOUS)
+TRAPHANDLER_NOEC(vector40, IRQ_OFFSET+8)
+TRAPHANDLER_NOEC(vector41, IRQ_OFFSET+9)
+TRAPHANDLER_NOEC(vector42, IRQ_OFFSET+10)
+TRAPHANDLER_NOEC(vector43, IRQ_OFFSET+11)
+TRAPHANDLER_NOEC(vector44, IRQ_OFFSET+12)
+TRAPHANDLER_NOEC(vector45, IRQ_OFFSET+13)
+TRAPHANDLER_NOEC(vector46, IRQ_OFFSET + IRQ_IDE)
+TRAPHANDLER_NOEC(vector47, IRQ_OFFSET+15)
+
 TRAPHANDLER_NOEC(vector48, T_SYSCALL)
 
 /*
@@ -135,20 +152,20 @@ vectors:
 	.long 	vector29
 	.long 	vector30
 	.long 	vector31
-	.long 	0
-	.long 	0
-	.long 	0
-	.long 	0
-	.long 	0
-	.long 	0
-	.long 	0
-	.long 	0
-	.long 	0
-	.long 	0
-	.long 	0
-	.long 	0
-	.long 	0
-	.long 	0
-	.long 	0
-	.long 	0
+	.long 	vector32
+	.long 	vector33
+	.long 	vector34
+	.long 	vector35
+	.long 	vector36
+	.long 	vector37
+	.long 	vector38
+	.long 	vector39
+	.long 	vector40
+	.long 	vector41
+	.long 	vector42
+	.long 	vector43
+	.long 	vector44
+	.long 	vector45
+	.long 	vector46
+	.long 	vector47
 	.long 	vector48

@@ -23,3 +23,7 @@ Ex 12:
     巧妙之处在于把PDX指向到了自身，把PTX指向了原PDX，而offset呢，刚好又和uvpt[pn]的pn*4 的后12位对应上了，而且刚好32bit宽，我佛了！。。。。
     访问pt的permission位(即va), 只需uvpt[pn];访问pd的permission位，只需upvd[pn].
     va 的 page-aligned 真的很关键！(在pgfault)
+
+Part C:
+Ex13:
+    Note: run with CPUS more than 1, otherwise it will no pass read_eflags() assert in trap()

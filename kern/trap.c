@@ -75,7 +75,7 @@ trap_init(void)
     
     int i = 0;
     extern void (*vectors[])();
-    for (i; i != 32; ++i) {
+    for (i; i != 256; ++i) {
         SETGATE(idt[i], 0, GD_KT, vectors[i], 0);
     }
     // Allow User level trigger T_BRKPT
