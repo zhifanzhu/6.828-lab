@@ -238,7 +238,6 @@ sys_page_map(envid_t srcenvid, void *srcva,
 		return -E_INVAL;
 	
 	if ((r = page_insert(dstenv->env_pgdir, pp, dstva, perm)) < 0) {
-		page_free(pp);
 		return r;
 	}
 	return 0;
@@ -309,7 +308,39 @@ static int
 sys_ipc_try_send(envid_t envid, uint32_t value, void *srcva, unsigned perm)
 {
 	// LAB 4: Your code here.
-	panic("sys_ipc_try_send not implemented");
+    int r;
+    pte_t *pte_entry;
+	struct PageInfo *pp;
+    struct Env *e;
+    if ((r = envid2env(envid, &e, false)) < 0)
+        return r;
+    if (!e->env_ipc_recving)
+        return -E_IPC_NOT_RECV;
+
+    // srcva >= UTOP means not sending a page
+    if ((uintptr_t)srcva < UTOP) {
+        if ((uintptr_t)srcva % PGSIZE)
+            return -E_INVAL;
+        if (!(perm & PTE_U) || !(perm & PTE_P) || perm & ~PTE_SYSCALL)
+            return -E_INVAL;
+        if ((pp = page_lookup(curenv->env_pgdir, srcva, &pte_entry)) == NULL)
+            return -E_INVAL;
+        if (perm & PTE_W && !(*pte_entry & PTE_W))
+            return -E_INVAL;
+        if ((r = page_insert(e->env_pgdir, pp, e->env_ipc_dstva, perm)) < 0)
+            return r;
+    }
+
+    e->env_ipc_recving = 0;
+    e->env_ipc_from = curenv->env_id;
+    e->env_ipc_value = value;
+    if ((uintptr_t)srcva < UTOP && (uintptr_t)(e->env_ipc_dstva) < UTOP) {
+        e->env_ipc_perm = perm;
+    } else {
+        e->env_ipc_perm = 0;
+    }
+    e->env_status = ENV_RUNNABLE;
+    return 0;
 }
 
 // Block until a value is ready.  Record that you want to receive
@@ -327,8 +358,14 @@ static int
 sys_ipc_recv(void *dstva)
 {
 	// LAB 4: Your code here.
-	panic("sys_ipc_recv not implemented");
-	return 0;
+    if ((uintptr_t)dstva < UTOP && (uintptr_t)dstva % PGSIZE)
+        return -E_INVAL;
+    
+    curenv->env_ipc_recving = 1;
+    curenv->env_tf.tf_regs.reg_eax = 0;
+    curenv->env_status = ENV_NOT_RUNNABLE;
+    sched_yield(); // sched_yield() never returns, return value pass from env_pop_tf 
+    return 0;
 }
 
 // Dispatches to the correct kernel function, passing the arguments.

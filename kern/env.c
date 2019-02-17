@@ -538,9 +538,11 @@ env_run(struct Env *e)
 
 	// LAB 3: Your code here.
     if (curenv) {
-		if (curenv->env_status != ENV_RUNNING)
-			panic("env_run: call env_run when curenv not ENV_RUNNING");
-        curenv->env_status = ENV_RUNNABLE;
+        if (curenv->env_status == ENV_RUNNING)
+            curenv->env_status = ENV_RUNNABLE;
+        if (curenv->env_status != ENV_RUNNABLE 
+                && curenv->env_status != ENV_NOT_RUNNABLE)
+            panic("call env_run when curenv status is %d", curenv->env_status);
 	}
     curenv = e;
     curenv->env_status = ENV_RUNNING;
