@@ -25,7 +25,11 @@ Ex 12:
     va 的 page-aligned 真的很关键！(在pgfault)
 
 Part C:
-Ex13:
+Ex13, 14:
     Note: run with CPUS more than 1, otherwise it will no pass read_eflags() assert in trap()
     修改 trap_init (lab3), 由于JOS diable interrupt in kernel mode，SETGATE for T_SYSCALL 应该是 0，interrupt gate 而不是trap gate.
     记得要 eoi lapic 的中断
+
+Ex 15:
+    修改: check of env_status in env_run(), caller modify env_status to ENV_NOT_RUNNABLE before call to env_run();
+   ipc_send loops, and yield(); ipc_recv calls sys_ipc_recv, sys__ipc_recv block by sched_yield();

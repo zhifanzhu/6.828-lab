@@ -361,6 +361,7 @@ sys_ipc_recv(void *dstva)
     if ((uintptr_t)dstva < UTOP && (uintptr_t)dstva % PGSIZE)
         return -E_INVAL;
     
+    curenv->env_ipc_dstva = dstva;
     curenv->env_ipc_recving = 1;
     curenv->env_tf.tf_regs.reg_eax = 0;
     curenv->env_status = ENV_NOT_RUNNABLE;
