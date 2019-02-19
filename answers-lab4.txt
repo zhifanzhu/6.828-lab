@@ -34,6 +34,8 @@ Ex 15:
     修改: check of env_status in env_run(), caller modify env_status to ENV_NOT_RUNNABLE before call to env_run();
    ipc_send loops, and yield(); ipc_recv calls sys_ipc_recv, sys__ipc_recv block by sched_yield();
 
+Challenge "sfork()"
+    thisenv was originally in program bss, now we define it in lib/entry.S, which we manually put it in the top 4 bytes of the user stack.
 
 Challenge "Communicating Sequential Processes":
     To implement the concurrent matrix multiplication, the KEY COMPONENT is the LOCK.

@@ -140,10 +140,82 @@ fork(void)
 	return envid;
 }
 
+// 
+// A shared version of duppage, for use in sfork
+// keep COW still COW after mapping
+//
+static int
+sharepage(envid_t envid, unsigned pn)
+{
+	int r;
+
+	void *addr = (void *)(pn * PGSIZE);
+	// Read-only
+	if (!(uvpt[pn] & PTE_W)) {
+		if ((r = sys_page_map(0, addr, envid, addr, PTE_U|PTE_P)) < 0)
+			panic("sys_page_map: %e", r);
+		return 0;
+	}
+
+	if (uvpt[pn] & PTE_W && uvpt[pn] & PTE_COW)
+			panic("sharepage: %x both copy-on-write and writable");
+
+    // either COW or W
+    if (uvpt[pn] & PTE_COW) {
+        if ((r = sys_page_map(0, addr, envid, addr, 
+                        PTE_COW|PTE_U|PTE_P)) < 0)
+            panic("sys_page_map: %e", r);
+        if ((r = sys_page_map(0, addr, 0, addr, 
+                        PTE_COW|PTE_U|PTE_P)) < 0)
+            panic("sys_page_map: %e", r);
+    } else {
+        if ((r = sys_page_map(0, addr, envid, addr, 
+                        PTE_W|PTE_U|PTE_P)) < 0)
+            panic("sys_page_map: %e", r);
+    } 
+	return 0;
+}
+
 // Challenge!
 int
 sfork(void)
 {
-	panic("sfork not implemented");
-	return -E_INVAL;
+	int r;
+	envid_t envid;
+	// Setup page fault handler
+	set_pgfault_handler(pgfault);
+	// Create a child
+	envid = sys_exofork();
+	if (envid < 0)
+		panic("fork: %e at sys_exofork", envid);
+	if (envid == 0) {
+		thisenv = &envs[ENVX(sys_getenvid())];
+		return 0;
+	}
+	// Copy most address space 
+	uintptr_t addr;
+	for (addr = 0; addr < USTACKTOP - PGSIZE; addr += PGSIZE) {
+		if (!(uvpd[PDX(addr)] & PTE_P))
+			continue;
+		if (uvpt[PGNUM(addr)] & PTE_P && uvpt[PGNUM(addr)] & PTE_U)
+			sharepage(envid, PGNUM(addr));
+	}
+    // Copy-on-write stack
+    assert(addr == USTACKTOP - PGSIZE);
+    if (uvpt[PGNUM(addr)] & PTE_P && uvpt[PGNUM(addr)] & PTE_U)
+        duppage(envid, PGNUM(addr));
+    else
+        panic("sfork: Stack area not available");
+    
+
+	// Set pgfault handler for child
+	if ((r = sys_page_alloc(envid, (void *)(UXSTACKTOP - PGSIZE), 
+				PTE_W | PTE_U | PTE_P)) < 0)
+		panic("set_pgfault_handler: %e", r);
+	extern void _pgfault_upcall(void);
+	sys_env_set_pgfault_upcall(envid, _pgfault_upcall);
+	// Set child status
+	if ((r = sys_env_set_status(envid, ENV_RUNNABLE)) < 0)
+		panic("fork: %e at sys_env_set_status", envid);
+	return envid;
 }
