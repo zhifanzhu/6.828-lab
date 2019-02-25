@@ -11,7 +11,7 @@ readline(const char *prompt)
 
 #if JOS_KERNEL
 	if (prompt != NULL)
-		cprintf("%s", prompt);
+		cprintf("\e[0;32m%s\e[0m", prompt);
 #else
 	if (prompt != NULL)
 		fprintf(1, "%s", prompt);
@@ -30,8 +30,11 @@ readline(const char *prompt)
 				cputchar('\b');
 			i--;
 		} else if (c >= ' ' && i < BUFLEN-1) {
-			if (echoing)
+			if (echoing){
+				cprintf("\e[35m");
 				cputchar(c);
+				cprintf("\e[0m");
+			}
 			buf[i++] = c;
 		} else if (c == '\n' || c == '\r') {
 			if (echoing)

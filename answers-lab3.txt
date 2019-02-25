@@ -1,0 +1,42 @@
+Exercise 1:
+    similar to pages, using boot_alloc
+
+Exercise 2:
+    我的难处：load_icode() 居然还要用lcr3？ 有没有更巧妙的办法？PageInfo？
+    我没想出来的：
+        env_setup_vm 里面， 居然直接memcpy kern_pgdir就可以了，本来我还想一行一行复制。
+
+Exercise 3:
+    Reading
+
+Exercise 4:
+    暂时屏蔽Welcome to JOS kernel的颜色输出
+
+*Challenge* 完成（？），仿照xv6
+    Answer to Questions：
+        1.  each individual hander pushes a DIFFERENT TRAPNO, and some provide
+            errorno if processor does not.
+        2. No.
+         By Intel Developer's Manual 3A, Interrupt 13:
+         General Protection Exception occurs when:
+            "Executing the INT n instruction when the CPL is greater than the DPL of
+            the referenced interrupt, trap, or task gate."
+
+        No errorno, no cr0 set, when kernel allows softint's int 14
+
+Exercise 5 & 6:
+    T_BRKPT: not sure, but pass the grade
+    Answer to Questions:
+        3. SETGATE dpl 3 for T_BRKPT
+        4. Protect Kernel from being violated by malicious user-level code
+
+Exercise 7:
+    make sure env.c: load_icode set *region_alloc and memset* address correctly
+        especially ph->p_memsz / ph->p_filesz are easily confused.
+
+Challenge:
+    Not yet, TODO
+Exercise 8: Easy
+Exercise 9: Easy
+订正Exercise 9：
+    并不Easy！ 都没有认真审题！ 说了kernel 的page fault只能panic了

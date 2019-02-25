@@ -1,5 +1,6 @@
 // test user-level fault handler -- alloc pages to fix faults
 // doesn't work because we sys_cputs instead of cprintf (exercise: why?)
+// Answer: Because sys_cputs is syscall, which delays page_fault until kernel mode
 
 #include <inc/lib.h>
 
