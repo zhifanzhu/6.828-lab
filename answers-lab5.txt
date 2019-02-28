@@ -18,3 +18,8 @@ Ex 8:
 
 Ex 9:
     大部分代码都被写好了啊。。。
+
+Ex 10:
+    Similar to previous sh homework.
+    Fix:
+        sys_env_set_trapframe need to pull down FL_IOPL bit to prevent devious user code.
