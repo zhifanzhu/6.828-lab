@@ -10,3 +10,5 @@ Ex 4:
     f_indirect and f_direct all saves blockno.
 
 Ex 5,6 : easy if read MOST of the file.c, serv.c fd.c
+
+Ex 7: easy, BUT : lab4 challenge sfork's thisenv was destroyed, need a new way.

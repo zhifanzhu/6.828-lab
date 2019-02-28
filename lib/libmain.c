@@ -5,7 +5,7 @@
 
 extern void umain(int argc, char **argv);
 
-// const volatile struct Env *thisenv;  // Definition of thisenv now move to lib/entry.S
+const volatile struct Env *thisenv;  // Definition of thisenv now move to lib/entry.S
 const char *binaryname = "<unknown>";
 
 void

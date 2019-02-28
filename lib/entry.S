@@ -14,8 +14,8 @@
 	.set uvpd, (UVPT+(UVPT>>12)*4)
 
 	// Move thisenv to stack, rather than on program bss, for sfork() lab challenge 
-	.globl thisenv
-	.set thisenv, (USTACKTOP - 4)
+	// .globl thisenv
+	// .set thisenv, (USTACKTOP - 4)
 
 
 // Entrypoint - this is where the kernel (or our parent environment)
@@ -25,7 +25,7 @@
 _start:
 	// See if we were started with arguments on the stack
 	cmpl $USTACKTOP, %esp
-	pushl thisenv // Reserve space for thisenv
+	// pushl thisenv // Reserve space for thisenv
 	jne args_exist
 
 	// If not, push dummy argc/argv arguments.
