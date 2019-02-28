@@ -12,3 +12,6 @@ Ex 4:
 Ex 5,6 : easy if read MOST of the file.c, serv.c fd.c
 
 Ex 7: easy, BUT : lab4 challenge sfork's thisenv was destroyed, need a new way.
+
+Ex 8:
+    我操！！！ 就因为fork里面一个小小的return， debug 了半天！！！

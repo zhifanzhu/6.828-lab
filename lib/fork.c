@@ -69,6 +69,15 @@ duppage(envid_t envid, unsigned pn)
 
 	// LAB 4: Your code here.	
 	void *addr = (void *)(pn * PGSIZE);
+    
+    // Share library state
+	if (uvpt[pn] & PTE_SHARE) {
+        if ((r = sys_page_map(0, addr, envid, addr, 
+                        uvpt[pn]&PTE_SYSCALL)) < 0)
+            panic("sys_page_map: %e", r);
+        return 0;
+    }
+
 	// Read-only
 	if (!(uvpt[pn] & PTE_W) && !(uvpt[pn] & PTE_COW)) {
 		if ((r = sys_page_map(0, addr, envid, addr, PTE_U|PTE_P)) < 0)
@@ -160,7 +169,6 @@ sharepage(envid_t envid, unsigned pn)
 	if (uvpt[pn] & PTE_W && uvpt[pn] & PTE_COW)
 			panic("sharepage: %x both copy-on-write and writable");
 
-    // either COW or W
     if (uvpt[pn] & PTE_COW) {
         if ((r = sys_page_map(0, addr, envid, addr, 
                         PTE_COW|PTE_U|PTE_P)) < 0)
