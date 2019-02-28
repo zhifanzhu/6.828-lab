@@ -15,3 +15,6 @@ Ex 7: easy, BUT : lab4 challenge sfork's thisenv was destroyed, need a new way.
 
 Ex 8:
     我操！！！ 就因为fork里面一个小小的return， debug 了半天！！！
+
+Ex 9:
+    大部分代码都被写好了啊。。。
