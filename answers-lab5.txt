@@ -28,3 +28,6 @@ Challenge:
     Add "touch"
     Add command-line history: Up arrow key only, simply disable Down key
         Did not find a good way to clear all display except for '\b', so only one history
+
+sfork():
+    move thisenv to bottome of user normal stack, hopefully this will not corrupt user stack (??)
