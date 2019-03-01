@@ -1,0 +1,33 @@
+Ex 1, Question 1:
+    No, because iret will pop tf_eflags
+
+Ex 2:
+    exercise for the reader: why do we do this *after* reading the block in?
+    Ans: it's logical to do it after TRANSACTION; process may panic because of sys_page_alloc then terminates ide_read, thus block should not be free... (?)
+Ex 3: easy
+Ex 4:
+    file_block_walk WILL cause pgfault to alloc page if searching in indirect;
+    f_indirect and f_direct all saves blockno.
+
+Ex 5,6 : easy if read MOST of the file.c, serv.c fd.c
+
+Ex 7: easy, BUT : lab4 challenge sfork's thisenv was destroyed, need a new way.
+
+Ex 8:
+    我操！！！ 就因为fork里面一个小小的return， debug 了半天！！！
+
+Ex 9:
+    大部分代码都被写好了啊。。。
+
+Ex 10:
+    Similar to previous sh homework.
+    Fix:
+        sys_env_set_trapframe need to pull down FL_IOPL bit to prevent devious user code.
+
+Challenge:
+    Add "touch"
+    Add command-line history: Up arrow key only, simply disable Down key
+        Did not find a good way to clear all display except for '\b', so only one history
+
+sfork():
+    move thisenv to bottome of user normal stack, hopefully this will not corrupt user stack (??)

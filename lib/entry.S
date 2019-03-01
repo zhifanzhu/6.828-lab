@@ -13,6 +13,10 @@
 	.globl uvpd
 	.set uvpd, (UVPT+(UVPT>>12)*4)
 
+	// Move thisenv to stack, rather than on program bss, for sfork() lab challenge 
+	.globl thisenv
+	.set thisenv, (USTACKTOP - 1*PGSIZE + 4)
+
 
 // Entrypoint - this is where the kernel (or our parent environment)
 // starts us running when we are initially loaded into a new environment.

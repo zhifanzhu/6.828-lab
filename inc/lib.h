@@ -62,6 +62,8 @@ int	sys_ipc_recv(void *rcv_pg);
 unsigned int sys_time_msec(void);
 
 // This must be inlined.  Exercise for reader: why?
+// Answer: To keep register states the same as parent, except for EAX
+// 			normal syscall will pollute registers 
 static inline envid_t __attribute__((always_inline))
 sys_exofork(void)
 {
