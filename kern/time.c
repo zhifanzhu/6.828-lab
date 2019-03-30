@@ -15,7 +15,6 @@ void
 time_tick(void)
 {
 	ticks++;
-    cprintf("tick: %x\n", ticks);
 	if (ticks * 10 < ticks)
 		panic("time_tick: time overflowed");
 }
