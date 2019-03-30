@@ -12,6 +12,7 @@
 #include <kern/console.h>
 #include <kern/sched.h>
 #include <kern/time.h>
+#include <kern/e1000.h>
 
 // Print a string to the system console.
 // The string is exactly 'len' characters long.
@@ -402,6 +403,35 @@ sys_time_msec(void)
     return time_msec();
 }
 
+// Try to transmit 'data' through e100 driver.
+//
+// The transmission fails with a return value of -E1000_TXD_FULL if the
+// transmit queue ring is full.
+//
+// Otherwise, the transmission succeeds
+//
+// Returns 0 on success, < 0 on error.
+// Errors are:
+//  -E1000_TXD_FULL if transmit queue ring is full.
+//	-E_INVAL if data < UTOP but data is not mapped in the caller's
+//		address space.
+//	-E_INVAL if data >= UTOP
+static int
+sys_e1000_try_transmit(void *data, size_t size)
+{
+    // Syscall does not protect `data` region.
+    // Convert data to phyaddr
+    int r;
+    if ((uintptr_t)data >= UTOP)
+        return -E_INVAL;
+    if ((r = user_mem_check(curenv, data, size, PTE_P|PTE_U)) < 0)
+        return -E_INVAL;
+    struct PageInfo *pp = page_lookup(curenv->env_pgdir, data, 0);
+    physaddr_t addr = page2pa(pp) | PGOFF(data); // Continuous Phy?
+    return e1000_transmit((uint32_t)data, size);
+    // Yield??
+}
+
 // Dispatches to the correct kernel function, passing the arguments.
 int32_t
 syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, uint32_t a5)
@@ -458,6 +488,9 @@ syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, 
 
     case SYS_time_msec:
         return sys_time_msec();
+
+    case SYS_e1000_try_transmit:
+        return sys_e1000_try_transmit((void *)a1, (size_t)a2);
 
 	default:
 		return -E_INVAL;
