@@ -404,25 +404,27 @@ sys_time_msec(void)
 }
 
 // Try to transmit 'data' through e1000 driver.
+// Currently only allow 'data' from the same page
 //
 // The transmission fails with a return value of -E1000_TXD_FULL if the
 // transmit queue ring is full.
-//
 // Otherwise, the transmission succeeds
 //
 // Returns 0 on success, < 0 on error.
 // Errors are:
 //  -E_TXD_FULL if transmit queue ring is full.
-//  -E_TXD_LEN_OV if len is too large (16288 bytes, ~4pages)
 //	-E_INVAL if data < UTOP but data is not mapped in the caller's
 //		address space.
 //	-E_INVAL if data >= UTOP
+//	-E_INVAL if [data, data + len) is crossing page boundary
 static int
 sys_e1000_try_transmit(void *data, size_t len)
 {
     // Syscall does not protect `data` region.
     // Convert data to phyaddr
     int r;
+    if (ROUNDDOWN(data, PGSIZE) != ROUNDDOWN(data+len, PGSIZE))
+        return -E_INVAL;
     if ((uintptr_t)data >= UTOP)
         return -E_INVAL;
     if ((r = user_mem_check(curenv, data, len, PTE_P|PTE_U)) < 0)

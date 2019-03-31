@@ -1,3 +1,5 @@
 
 Ex 8:
-    Always set EOP?
+    Always set EOP in any single packet descriptor;
+    Syscall_e1000_try_transmit Only allow [data, data+len) to stay in same page.
+    So no E_TXD_LEN_OV will occur.
