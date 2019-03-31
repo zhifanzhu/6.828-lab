@@ -403,7 +403,7 @@ sys_time_msec(void)
     return time_msec();
 }
 
-// Try to transmit 'data' through e100 driver.
+// Try to transmit 'data' through e1000 driver.
 //
 // The transmission fails with a return value of -E1000_TXD_FULL if the
 // transmit queue ring is full.
@@ -429,7 +429,7 @@ sys_e1000_try_transmit(void *data, size_t len)
         return -E_INVAL;
     struct PageInfo *pp = page_lookup(curenv->env_pgdir, data, 0);
     physaddr_t addr = page2pa(pp) | PGOFF(data); // Continuous Phy?
-    return e1000_transmit((uint32_t)data, (uint16_t)len);
+    return e1000_transmit((uint32_t)addr, (uint16_t)len);
 }
 
 // Dispatches to the correct kernel function, passing the arguments.
