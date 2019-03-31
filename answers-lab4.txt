@@ -35,7 +35,7 @@ Ex 15:
    ipc_send loops, and yield(); ipc_recv calls sys_ipc_recv, sys__ipc_recv block by sched_yield();
 
 Challenge "sfork()"
-    thisenv was originally in program bss, now we define it in lib/entry.S, which we manually put it in the top 4 bytes of the user stack.
+    thisenv was originally in program bss, now we define it in lib/entry.S, which we manually put it in the BOTTOM 4 bytes of the user stack.
 
 Challenge "Communicating Sequential Processes":
     To implement the concurrent matrix multiplication, the KEY COMPONENT is the LOCK.

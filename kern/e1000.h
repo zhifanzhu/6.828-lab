@@ -2,6 +2,7 @@
 #define JOS_KERN_E1000_H
 
 #include <inc/types.h>
+#include <inc/error.h>
 
 #define PCI_VENDOR_DEFAULT          0x8086
 #define PCI_DEVICE_E1000            0x100e
@@ -305,11 +306,9 @@ struct e1000_tx_desc {
     } upper;
 };
 
-#define NUM_TX_DESC     16
-#define TXDESC_LEN      (NUM_TX_DESC*sizeof(struct e1000_tx_desc))
-
-/* e1000 messages */
-#define E1000_TXD_FULL      0x1 
+#define NUM_TX_DESC         16
+#define TXDESC_LEN          (NUM_TX_DESC*sizeof(struct e1000_tx_desc))
+#define TXDATA_MAX_LEN      16288
 
 struct pci_func;
 int pci_e1000_attach(struct pci_func *);

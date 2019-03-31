@@ -412,24 +412,24 @@ sys_time_msec(void)
 //
 // Returns 0 on success, < 0 on error.
 // Errors are:
-//  -E1000_TXD_FULL if transmit queue ring is full.
+//  -E_TXD_FULL if transmit queue ring is full.
+//  -E_TXD_LEN_OV if len is too large (16288 bytes, ~4pages)
 //	-E_INVAL if data < UTOP but data is not mapped in the caller's
 //		address space.
 //	-E_INVAL if data >= UTOP
 static int
-sys_e1000_try_transmit(void *data, size_t size)
+sys_e1000_try_transmit(void *data, size_t len)
 {
     // Syscall does not protect `data` region.
     // Convert data to phyaddr
     int r;
     if ((uintptr_t)data >= UTOP)
         return -E_INVAL;
-    if ((r = user_mem_check(curenv, data, size, PTE_P|PTE_U)) < 0)
+    if ((r = user_mem_check(curenv, data, len, PTE_P|PTE_U)) < 0)
         return -E_INVAL;
     struct PageInfo *pp = page_lookup(curenv->env_pgdir, data, 0);
     physaddr_t addr = page2pa(pp) | PGOFF(data); // Continuous Phy?
-    return e1000_transmit((uint32_t)data, size);
-    // Yield??
+    return e1000_transmit((uint32_t)data, (uint16_t)len);
 }
 
 // Dispatches to the correct kernel function, passing the arguments.

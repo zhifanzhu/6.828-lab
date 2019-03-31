@@ -124,7 +124,7 @@ sys_time_msec(void)
 }
 
 int 
-sys_e1000_try_transmit(void *data, size_t size)
+sys_e1000_try_transmit(void *data, size_t len)
 {
-    return syscall(SYS_e1000_try_transmit, (uint32_t)data, size, 0, 0, 0, 0);
+    return syscall(SYS_e1000_try_transmit, 0, (uint32_t)data, len, 0, 0, 0);
 }

@@ -68,6 +68,9 @@ pci_e1000_attach(struct pci_func *f)
 int
 e1000_transmit(physaddr_t addr, uint16_t length) 
 {
+    if (length > TXDATA_MAX_LEN)
+        return -E_TXD_LEN_OV;
+
     size_t tail = e1000_read(E1000_TDT);
     // Read the DD bit of TAIL Register
     if (!(txdesc_list[tail].lower.data & E1000_TXD_CMD_RS)
@@ -77,14 +80,12 @@ e1000_transmit(physaddr_t addr, uint16_t length)
         // Descriptor Done, we are safe
         txdesc_list[tail].buffer_addr = addr;
         txdesc_list[tail].lower.flags.length = length; // length must > 48 ?
-        txdesc_list[tail].lower.data |= E1000_TXD_CMD_RS;
-        /* txdesc_list[tail].lower.data |= E1000_TXD_CMD_RS|E1000_TXD_CMD_EOP; */
-        /* Do we need to set EOP flag? */
+        txdesc_list[tail].lower.data |= E1000_TXD_CMD_RS|E1000_TXD_CMD_EOP;
         tail = (++tail == NUM_TX_DESC) ? 0 : tail;
         e1000_write(E1000_TDT, tail);
         return 0;
     } else {
         // DD not set, tx queue is full
-        return -E1000_TXD_FULL;
+        return -E_TXD_FULL;
     }
 }
