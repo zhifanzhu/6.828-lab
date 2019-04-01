@@ -400,8 +400,9 @@ struct e1000_rx_desc {
     uint16_t special;
 };
 
-#define NUM_RX_DESC         128
+#define NUM_RX_DESC         128 // Not greater than 256; 256*16==PGSIZE
 #define RXDESC_LEN          (NUM_RX_DESC*sizeof(struct e1000_rx_desc))
+#define RXBUF_SIZE          (NUM_RX_DESC*2048)
 
 struct pci_func;
 int pci_e1000_attach(struct pci_func *);

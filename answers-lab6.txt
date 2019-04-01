@@ -14,4 +14,6 @@ Answers To Question:
     sys_e1000_try_transmit() will pass this return value to user space, like what sys_ipc_try_send() do.
     output() will thus block and re-transmit packet if it sees -E_TXD_FULL, like what ipc_send() do.
 
-
+Ex 9:
+    在tx模式下，TDT先移动 TDH追赶TDT； 在rx模式下， RDH先移动，s/w 控制RDT追赶RDH.
+    Do Receive Initialization in advance of Transmit Initialization
