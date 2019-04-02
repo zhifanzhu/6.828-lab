@@ -402,10 +402,13 @@ struct e1000_rx_desc {
 
 #define NUM_RX_DESC         128 // Not greater than 256; 256*16==PGSIZE
 #define RXDESC_LEN          (NUM_RX_DESC*sizeof(struct e1000_rx_desc))
-#define RXBUF_SIZE          (NUM_RX_DESC*2048)
+#define RXBUF_SIZE          2048
+#define RXBUF_TOTAL_SIZE    (NUM_RX_DESC*RXBUF_SIZE)
 
 struct pci_func;
 int pci_e1000_attach(struct pci_func *);
 int e1000_transmit(uint32_t, uint16_t);
+int e1000_receive(void **rcvpg_list, size_t num);
+extern char *e1000_recv_buf;
 
 #endif	// JOS_KERN_E1000_H

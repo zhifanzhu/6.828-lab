@@ -3,6 +3,7 @@
 
 #include <kern/pci.h>
 #include <kern/pmap.h>
+#include <kern/sched.h>
 
 // LAB 6: Your driver code here
 
@@ -10,7 +11,7 @@
 static volatile uint32_t *e1000_bar0; // E1000 Base Address Register 0
 struct e1000_tx_desc txdesc_list[NUM_TX_DESC]; // Transmit Descriptor Ring TODO static
 struct e1000_rx_desc rxdesc_list[NUM_RX_DESC]; // Receive Descriptor Ring TODO static
-char recv_buf[RXBUF_SIZE];
+char e1000_recv_buf[RXBUF_SIZE];
 
 uint32_t
 e1000_read(int index)
@@ -83,7 +84,7 @@ e1000_rx_init()
     // RDBAL is used for 32-bit address.
     int tail = 0;
     for (; tail < NUM_RX_DESC; ++tail) {
-        rxdesc_list[tail].buffer_addr = (uint32_t)&recv_buf[tail*RXBUF_SIZE];
+        rxdesc_list[tail].buffer_addr = (uint32_t)&e1000_recv_buf[tail*RXBUF_SIZE];
     }
     e1000_write(E1000_RDBAL, PADDR(&rxdesc_list[0]));
     e1000_write(E1000_RDBAH, 0);
@@ -121,7 +122,6 @@ e1000_rx_init()
                 |E1000_RCTL_MO_0|SET_RCTL_BAM(1)|E1000_RCTL_SZ_256
                 |SET_RCTL_BSEX(1)|SET_RCTL_SECRC(1);
     e1000_write(E1000_RCTL, rctl_reg);
-
 }
 
 int 
@@ -161,7 +161,22 @@ e1000_transmit(physaddr_t addr, uint16_t length)
     }
 }
 
-int e1000_receive()
+int e1000_receive(void **rcvpg_list, size_t num)
 {
-    return 0;
+    size_t tail = e1000_read(E1000_RDT);
+    int i;
+    for (i = 0; i < num ;++i) {
+
+
+        uint8_t status = rxdesc_list[tail].status;
+        if (status & E1000_RXD_STAT_DD) {
+            tail = (++tail == NUM_RX_DESC) ? 0 : tail;
+            e1000_write(E1000_RDT, tail);
+            if (status & E1000_RXD_STAT_EOP)
+                return 0;
+        } else {
+            sched_yield();
+        }
+    }
+    return -E_RXD_NO_BUF;
 }

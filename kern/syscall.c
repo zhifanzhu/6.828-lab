@@ -430,8 +430,41 @@ sys_e1000_try_transmit(void *data, size_t len)
     if ((r = user_mem_check(curenv, data, len, PTE_P|PTE_U)) < 0)
         return -E_INVAL;
     struct PageInfo *pp = page_lookup(curenv->env_pgdir, data, 0);
-    physaddr_t addr = page2pa(pp) | PGOFF(data); // Continuous Phy?
+    physaddr_t addr = page2pa(pp) | PGOFF(data); 
     return e1000_transmit((uint32_t)addr, (uint16_t)len);
+}
+
+// Receive data and save into `rcvpg_list` buffer
+//
+// Returns 0 on success, < 0 on error.
+// Errors are:
+//  -E_RXD_NO_BUF `num` of recv pages smaller than pakcet requires.
+//	-E_INVAL if rcvpg_list is NULL or any entry is NULL
+//	-E_INVAL if rcvpg_list or any entry >= UTOP
+//	-E_INVAL if rcvpg_list or entriy < UTOP, but not map in caller's space
+//	-E_INVAL if entry is not page-aligned 
+static int
+sys_e1000_receive(void **rcvpg_list, size_t num)
+{
+    int i, r;
+    struct PageInfo *pp;
+    physaddr_t addr;
+
+    if (rcvpg_list == NULL || (uintptr_t)rcvpg_list >= UTOP)
+        return -E_INVAL;
+    if ((r = user_mem_check(curenv, rcvpg_list, 4*num, PTE_P|PTE_U|PTE_W))<0)
+        return -E_INVAL;
+
+    for (i = 0; i < num; ++i) {
+        void *pg = rcvpg_list[i];
+        if (pg == 0 || (uintptr_t)pg % PGSIZE || (uintptr_t)pg >= UTOP)
+            return -E_INVAL;
+        if ((r = user_mem_check(curenv, pg, PGSIZE, PTE_P|PTE_U|PTE_W)) < 0)
+            return -E_INVAL;
+        pp = page_lookup(curenv->env_pgdir, pg, 0);
+        rcvpg_list[i] = (void *)page2pa(pp);
+    }
+    return e1000_receive(rcvpg_list, num);
 }
 
 // Dispatches to the correct kernel function, passing the arguments.
@@ -493,6 +526,9 @@ syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, 
 
     case SYS_e1000_try_transmit:
         return sys_e1000_try_transmit((void *)a1, (size_t)a2);
+
+    case SYS_e1000_receive:
+        return sys_e1000_receive((void **)a1, (size_t)a2);
 
 	default:
 		return -E_INVAL;
