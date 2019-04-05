@@ -14,6 +14,7 @@
 #include <kern/cpu.h>
 #include <kern/spinlock.h>
 #include <kern/time.h>
+#include <kern/e1000.h>
 
 static struct Taskstate ts;
 
@@ -244,6 +245,12 @@ trap_dispatch(struct Trapframe *tf)
 	// triggered on every CPU.
 	// LAB 6: Your code here.
     // See above
+    // Lab 6 challenge: interrupt
+    if (tf->tf_trapno == IRQ_OFFSET + IRQ_E1000) {
+        lapic_eoi();
+        e1000_intr();
+        return;
+    }
 
 
 	// Handle keyboard and serial interrupts.

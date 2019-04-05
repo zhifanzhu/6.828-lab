@@ -17,3 +17,20 @@ Answers To Question:
 Ex 9:
     在tx模式下，TDT先移动 TDH追赶TDT； 在rx模式下， RDH先移动，s/w 控制RDT追赶RDH.
     Do Receive Initialization in advance of Transmit Initialization
+
+Ex 10 & 11:
+    方案1： microkernel 思想，userspace穿入buf，all the way to driver；
+            缺点：需要重复Enable/Disable RX，一次传多少Page？
+                  实现繁琐， 需要考虑各种接口，边界
+            THIS IS IN THE CHALLENGE PROBLEM: ZERO COPY
+
+    方案2： monolithic kernel， kernel为driver提供buf，
+            syscall memcpy buf到user申请的page，不应该使用share memory，
+            因为user不应该touch kernel的physical memory.
+
+    解决方案： 方案2， disable long packet: dealing with long packet is complicated
+               receive类似transmit
+    In e1000_init, add irq_setmask_8259A to enable interrupt, jos can only handle up to 16 ints
+
+    RDTR set delay time; Software can set the timer value to 0b if it wants to be notified each time a new packet has been stored in memory
+    ICR.RXDMT generate int when #-of-free-desc==RCTL.RDMTS

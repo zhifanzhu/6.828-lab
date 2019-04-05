@@ -3,6 +3,10 @@
 
 #include <kern/pci.h>
 #include <kern/pmap.h>
+#include <kern/picirq.h>
+#include <kern/trap.h>
+
+#include <inc/string.h>
 #include <kern/sched.h>
 
 // LAB 6: Your driver code here
@@ -11,7 +15,7 @@
 static volatile uint32_t *e1000_bar0; // E1000 Base Address Register 0
 struct e1000_tx_desc txdesc_list[NUM_TX_DESC]; // Transmit Descriptor Ring TODO static
 struct e1000_rx_desc rxdesc_list[NUM_RX_DESC]; // Receive Descriptor Ring TODO static
-char e1000_recv_buf[RXBUF_SIZE];
+char recv_buf[RXBUF_TOTAL_SIZE];
 
 uint32_t
 e1000_read(int index)
@@ -76,15 +80,19 @@ e1000_rx_init()
     // There's no immediate reason to enable the transmit interrupt
     //
     // If s/w uses the Receive Descriptor Minimum Threshold Interrupt, 
-    // the Receive Delay Timer(RDTR) register should be initialized with desire delay time
-    // Don't Use interrupt for now.(Do this in Challenge problem)
+    // the RDTR register should be initialized with desire delay time
+    e1000_write(E1000_RDTR, 0); // immediate int for each packet
+
+    // Enable interrupts
+    /* e1000_write(E1000_IMS, 0); */
+    e1000_write(E1000_IMS, E1000_ICS_RXT0|E1000_ICS_RXO|E1000_ICS_RXSEQ|E1000_ICS_LSC);
 
     // Allocate a region of memory for the receive descriptor list (16-bytes aligned),
     // Program the Receive Descriptor Base Address(RDBAL/RDBAH) with addr of the region
     // RDBAL is used for 32-bit address.
     int tail = 0;
     for (; tail < NUM_RX_DESC; ++tail) {
-        rxdesc_list[tail].buffer_addr = (uint32_t)&e1000_recv_buf[tail*RXBUF_SIZE];
+        rxdesc_list[tail].buffer_addr = (uint32_t)PADDR(&recv_buf[tail*RXBUF_SIZE]);
     }
     e1000_write(E1000_RDBAL, PADDR(&rxdesc_list[0]));
     e1000_write(E1000_RDBAH, 0);
@@ -100,7 +108,7 @@ e1000_rx_init()
     // Head should point to first valid receive desc in ring and tail should point
     // to one desc beyond the last valid desc in ring.
     e1000_write(E1000_RDT, 0);  
-    e1000_write(E1000_RDH, 1); // Can't set RDH to be equal to RDT
+    e1000_write(E1000_RDH, 0); // Can't set RDH to be equal to RDT
 
     // Program the RCTL with :
     //  Set RCTL.EN bit to 1b for normal op. However, it's best to leave RCTL.EN = 0b 
@@ -117,8 +125,8 @@ e1000_rx_init()
     //      the receive packet to host Memory
     uint32_t rctl_reg = e1000_read(E1000_RCTL);
     assert(rctl_reg == 0);
-    // Currently enable Long Packet; mem buf size 4096 bytes(BSEX==1b, SZ_256)
-    rctl_reg = SET_RCTL_EN(1)|SET_RCTL_LPE(1)|E1000_RCTL_LBM_NO|E1000_RCTL_RDMTS_HALF 
+    // Currently diable Long Packet; mem buf size 4096 bytes(BSEX==1b, SZ_256)
+    rctl_reg = SET_RCTL_EN(1)|SET_RCTL_LPE(0)|E1000_RCTL_LBM_NO|E1000_RCTL_RDMTS_HALF 
                 |E1000_RCTL_MO_0|SET_RCTL_BAM(1)|E1000_RCTL_SZ_256
                 |SET_RCTL_BSEX(1)|SET_RCTL_SECRC(1);
     e1000_write(E1000_RCTL, rctl_reg);
@@ -133,6 +141,7 @@ pci_e1000_attach(struct pci_func *f)
     assert(e1000_read(E1000_STATUS) == 0x80080783); // full duplex link 1000 MB/s
     e1000_rx_init();
     e1000_tx_init();
+	irq_setmask_8259A(irq_mask_8259A & ~(1<<IRQ_E1000)); // Enable interrupt
     return 1;
 }
 
@@ -161,22 +170,46 @@ e1000_transmit(physaddr_t addr, uint16_t length)
     }
 }
 
-int e1000_receive(void **rcvpg_list, size_t num)
+// driver doesn't do pointer validation check, syscall do this 
+int 
+e1000_receive(void *dstva, size_t len)
 {
+    // receive when needed??
+    len = MIN(len, RXBUF_SIZE);
     size_t tail = e1000_read(E1000_RDT);
-    int i;
-    for (i = 0; i < num ;++i) {
+    size_t prev_t = tail;
+    tail = (++tail == NUM_RX_DESC) ? 0 : tail;
+    e1000_write(E1000_RDT, tail);
+    sched_yield();
+    uint8_t status = rxdesc_list[prev_t].status;
+    if(!(status & E1000_RXD_STAT_DD))
+        return -1;
+    /* while(!(status & E1000_RXD_STAT_DD)) { */
+    /*     ; */
+    /*     /1* cprintf("yield\n"); *1/ */
+    /*     /1* sched_yield(); *1/ */
+    /* } */
+        cprintf("PASS\n");
 
+    memcpy(dstva, &recv_buf[prev_t*RXBUF_SIZE], len);
+    /* tail = (++tail == NUM_RX_DESC) ? 0 : tail; */
+    /* e1000_write(E1000_RDT, tail); */
+    /* if (status & E1000_RXD_STAT_EOP) */
+    /*     return 0; */
+    return 0;
+}
 
-        uint8_t status = rxdesc_list[tail].status;
-        if (status & E1000_RXD_STAT_DD) {
-            tail = (++tail == NUM_RX_DESC) ? 0 : tail;
-            e1000_write(E1000_RDT, tail);
-            if (status & E1000_RXD_STAT_EOP)
-                return 0;
-        } else {
-            sched_yield();
-        }
-    }
-    return -E_RXD_NO_BUF;
+void
+e1000_intr(void)
+{
+    // Clear the interrupt
+    //
+
+    // Read and printf the cause of interrupt
+    uint32_t mask = 0xFFFFFFFF;
+    /* uint32_t icr = e1000_read(E1000_ICR); */
+    /* e1000_write(E1000_IMS, ~mask); */
+    /* e1000_write(E1000_IMC, mask); */
+    /* e1000_write(E1000_ICS, ~mask); */
+    /* cprintf("%x\n", icr); */
 }

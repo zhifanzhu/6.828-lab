@@ -130,7 +130,7 @@ sys_e1000_try_transmit(void *data, size_t len)
 }
 
 int 
-sys_e1000_receive(void **rcvpg_list, size_t num)
+sys_e1000_receive(void *dstva, size_t len)
 {
-    return syscall(SYS_e1000_receive, 0, (uint32_t)rcvpg_list, num, 0, 0, 0);
+    return syscall(SYS_e1000_receive, 0, (uint32_t)dstva, len, 0, 0, 0);
 }

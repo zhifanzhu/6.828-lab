@@ -29,7 +29,6 @@ enum {
     // Network error codes  
     E_TXD_FULL,     // Transmit Ring full
     E_TXD_LEN_OV,   // Transmit length overflow
-    E_RXD_NO_BUF,   // Receive buf provided to driver cannot hold all packets
 
 	MAXERROR
 };

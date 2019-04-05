@@ -61,7 +61,7 @@ int	sys_ipc_try_send(envid_t to_env, uint32_t value, void *pg, int perm);
 int	sys_ipc_recv(void *rcv_pg);
 unsigned int sys_time_msec(void);
 int sys_e1000_try_transmit(void *data, size_t len);
-int sys_e1000_receive(void **rcvpg_list, size_t num);
+int sys_e1000_receive(void *dstva, size_t len);
 
 // This must be inlined.  Exercise for reader: why?
 // Answer: To keep register states the same as parent, except for EAX

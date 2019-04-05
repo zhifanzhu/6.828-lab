@@ -103,7 +103,7 @@ umain(int argc, char **argv)
 		if (req != NSREQ_INPUT)
 			panic("Unexpected IPC %d", req);
 
-		hexdump("input: ", pkt->jp_data, pkt->jp_len);
+		/* hexdump("input: ", pkt->jp_data, pkt->jp_len); */
 		cprintf("\n");
 
 		// Only indicate that we're waiting for packets once

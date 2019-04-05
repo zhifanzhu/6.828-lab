@@ -242,6 +242,66 @@
 #define E1000_STATUS_SERDES0_DIS  0x10000000 /* SERDES disabled on port 0 */
 #define E1000_STATUS_SERDES1_DIS  0x20000000 /* SERDES disabled on port 1 */
 
+/* Interrupt Cause Read */
+#define E1000_ICR_TXDW          0x00000001 /* Transmit desc written back */
+#define E1000_ICR_TXQE          0x00000002 /* Transmit Queue empty */
+#define E1000_ICR_LSC           0x00000004 /* Link Status Change */
+#define E1000_ICR_RXSEQ         0x00000008 /* rx sequence error */
+#define E1000_ICR_RXDMT0        0x00000010 /* rx desc min. threshold (0) */
+#define E1000_ICR_RXO           0x00000040 /* rx overrun */
+#define E1000_ICR_RXT0          0x00000080 /* rx timer intr (ring 0) */
+#define E1000_ICR_MDAC          0x00000200 /* MDIO access complete */
+#define E1000_ICR_RXCFG         0x00000400 /* RX /c/ ordered set */
+#define E1000_ICR_GPI_EN0       0x00000800 /* GP Int 0 */
+#define E1000_ICR_GPI_EN1       0x00001000 /* GP Int 1 */
+#define E1000_ICR_GPI_EN2       0x00002000 /* GP Int 2 */
+#define E1000_ICR_GPI_EN3       0x00004000 /* GP Int 3 */
+#define E1000_ICR_TXD_LOW       0x00008000
+#define E1000_ICR_SRPD          0x00010000
+#define E1000_ICR_ACK           0x00020000 /* Receive Ack frame */
+#define E1000_ICR_MNG           0x00040000 /* Manageability event */
+#define E1000_ICR_DOCK          0x00080000 /* Dock/Undock */
+#define E1000_ICR_INT_ASSERTED  0x80000000 /* If this bit asserted, the driver should claim the interrupt */
+#define E1000_ICR_RXD_FIFO_PAR0 0x00100000 /* queue 0 Rx descriptor FIFO parity error */
+#define E1000_ICR_TXD_FIFO_PAR0 0x00200000 /* queue 0 Tx descriptor FIFO parity error */
+#define E1000_ICR_HOST_ARB_PAR  0x00400000 /* host arb read buffer parity error */
+#define E1000_ICR_PB_PAR        0x00800000 /* packet buffer parity error */
+#define E1000_ICR_RXD_FIFO_PAR1 0x01000000 /* queue 1 Rx descriptor FIFO parity error */
+#define E1000_ICR_TXD_FIFO_PAR1 0x02000000 /* queue 1 Tx descriptor FIFO parity error */
+#define E1000_ICR_ALL_PARITY    0x03F00000 /* all parity error bits */
+#define E1000_ICR_DSW           0x00000020 /* FW changed the status of DISSW bit in the FWSM */
+#define E1000_ICR_PHYINT        0x00001000 /* LAN connected device generates an interrupt */
+#define E1000_ICR_EPRST         0x00100000 /* ME handware reset occurs */
+
+/* Interrupt Cause Set */
+#define E1000_ICS_TXDW      E1000_ICR_TXDW      /* Transmit desc written back */
+#define E1000_ICS_TXQE      E1000_ICR_TXQE      /* Transmit Queue empty */
+#define E1000_ICS_LSC       E1000_ICR_LSC       /* Link Status Change */
+#define E1000_ICS_RXSEQ     E1000_ICR_RXSEQ     /* rx sequence error */
+#define E1000_ICS_RXDMT0    E1000_ICR_RXDMT0    /* rx desc min. threshold */
+#define E1000_ICS_RXO       E1000_ICR_RXO       /* rx overrun */
+#define E1000_ICS_RXT0      E1000_ICR_RXT0      /* rx timer intr */
+#define E1000_ICS_MDAC      E1000_ICR_MDAC      /* MDIO access complete */
+#define E1000_ICS_RXCFG     E1000_ICR_RXCFG     /* RX /c/ ordered set */
+#define E1000_ICS_GPI_EN0   E1000_ICR_GPI_EN0   /* GP Int 0 */
+#define E1000_ICS_GPI_EN1   E1000_ICR_GPI_EN1   /* GP Int 1 */
+#define E1000_ICS_GPI_EN2   E1000_ICR_GPI_EN2   /* GP Int 2 */
+#define E1000_ICS_GPI_EN3   E1000_ICR_GPI_EN3   /* GP Int 3 */
+#define E1000_ICS_TXD_LOW   E1000_ICR_TXD_LOW
+#define E1000_ICS_SRPD      E1000_ICR_SRPD
+#define E1000_ICS_ACK       E1000_ICR_ACK       /* Receive Ack frame */
+#define E1000_ICS_MNG       E1000_ICR_MNG       /* Manageability event */
+#define E1000_ICS_DOCK      E1000_ICR_DOCK      /* Dock/Undock */
+#define E1000_ICS_RXD_FIFO_PAR0 E1000_ICR_RXD_FIFO_PAR0 /* queue 0 Rx descriptor FIFO parity error */
+#define E1000_ICS_TXD_FIFO_PAR0 E1000_ICR_TXD_FIFO_PAR0 /* queue 0 Tx descriptor FIFO parity error */
+#define E1000_ICS_HOST_ARB_PAR  E1000_ICR_HOST_ARB_PAR  /* host arb read buffer parity error */
+#define E1000_ICS_PB_PAR        E1000_ICR_PB_PAR        /* packet buffer parity error */
+#define E1000_ICS_RXD_FIFO_PAR1 E1000_ICR_RXD_FIFO_PAR1 /* queue 1 Rx descriptor FIFO parity error */
+#define E1000_ICS_TXD_FIFO_PAR1 E1000_ICR_TXD_FIFO_PAR1 /* queue 1 Tx descriptor FIFO parity error */
+#define E1000_ICS_DSW       E1000_ICR_DSW
+#define E1000_ICS_PHYINT    E1000_ICR_PHYINT
+#define E1000_ICS_EPRST     E1000_ICR_EPRST
+
 /* Transmit Descriptor bit definitions */
 #define E1000_TXD_DTYP_D     0x00100000 /* Data Descriptor */
 #define E1000_TXD_DTYP_C     0x00000000 /* Context Descriptor */
@@ -402,13 +462,13 @@ struct e1000_rx_desc {
 
 #define NUM_RX_DESC         128 // Not greater than 256; 256*16==PGSIZE
 #define RXDESC_LEN          (NUM_RX_DESC*sizeof(struct e1000_rx_desc))
-#define RXBUF_SIZE          2048
+#define RXBUF_SIZE          4096
 #define RXBUF_TOTAL_SIZE    (NUM_RX_DESC*RXBUF_SIZE)
 
 struct pci_func;
 int pci_e1000_attach(struct pci_func *);
-int e1000_transmit(uint32_t, uint16_t);
-int e1000_receive(void **rcvpg_list, size_t num);
-extern char *e1000_recv_buf;
+int e1000_transmit(physaddr_t addr, uint16_t length);
+int e1000_receive(void *dstva, size_t len);
+void e1000_intr(void);
 
 #endif	// JOS_KERN_E1000_H

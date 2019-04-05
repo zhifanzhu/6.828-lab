@@ -37,7 +37,6 @@ static const char * const error_string[MAXERROR] =
 	[E_NOT_SUPP]	= "operation not supported",
     [E_TXD_FULL]    = "transmit ring full",
     [E_TXD_LEN_OV]  = "transmit length overflow",
-    [E_RXD_NO_BUF]  = "receive buf length too small",
 };
 
 /*
